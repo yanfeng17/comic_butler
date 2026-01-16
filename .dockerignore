@@ -1,0 +1,21 @@
+# Config file (User's private keys)
+config.yaml
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data directories (should be mounted)
+data/
+runs/
+
+# Git
+.git/
+.gitignore
+
+# Environment files
+.env
+.venv
+env/
+venv/

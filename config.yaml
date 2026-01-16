@@ -1,0 +1,34 @@
+rtsp_url: rtsp://admin:ZYF001026@192.168.31.200:554/stream2&channel=1
+siliconflow_token: sk-taktxewomycqnektzkdfdwpmpuevweyfbtjtdldkunnomzxi
+scoring_model: THUDM/GLM-4.1V-9B-Thinking
+cartoon_model: Qwen/Qwen-Image-Edit-2509
+pushplus_token: bcaf66932ea143e7a8b99271a6172dd0
+imgbb_api_key: f240f471c88ad040cc8008f1047fc5dd
+capture_interval: 30
+push_times:
+- '21:00'
+top_n: 3
+quality_threshold: 0.5
+enable_face_detection: false
+auto_capture_enabled: false
+auto_push_enabled: true
+cartoon_prompt: 经典中国连环画风格，手绘插画质感，清晰的勾线，淡雅的水彩晕染，复古氛围，细腻的笔触，富有故事感，宁静祥和，保留图片中人物和背景的主要特征
+scoring_prompt: '作为一名专业摄影评审，请对这张照片进行审美评分。
+
+
+  评判标准：
+
+  1. 构图美感 (20分)
+
+  2. 光线运用 (20分)
+
+  3. 色彩搭配 (20分)
+
+  4. 人物表情/姿态 (20分)
+
+  5. 整体氛围 (20分)
+
+
+  请只回复一个0到1之间的小数作为最终评分，例如：0.75
+
+  不要加任何其他文字。'

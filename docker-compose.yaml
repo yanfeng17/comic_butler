@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  comic-butler:
+    build: .
+    image: comic-butler:latest
+    container_name: comic-butler
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    volumes:
+      # Map the local 'data' directory to '/app/data' in the container
+      # This is where config.yaml (via CONFIG_PATH) and captured images will be stored
+      - ./data:/app/data
+      
+      # If you want to use the config.yaml from the current directory instead of data/
+      # uncomment the following line and remove CONFIG_PATH env var if needed (but data/ logic is preferred)
+      # - ./config.yaml:/app/data/config.yaml
+      
+    environment:
+      - CONFIG_PATH=/app/data/config.yaml
+      - TZ=Asia/Shanghai
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Optional: Resource limits
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '1'
+    #       memory: 1G

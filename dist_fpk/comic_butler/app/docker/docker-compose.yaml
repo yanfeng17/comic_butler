@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  comic-butler:
+    # Use the pre-built image from Alibaba Cloud Registry
+    image: crpi-e3vuk2tn55669vwt.cn-shenzhen.personal.cr.aliyuncs.com/yan_feng/comic_butler:1.0.1
+    container_name: comic-butler
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    volumes:
+      # Map the FNNAS share to the container's data directory
+      - "/var/apps/comic_butler/shares/comic_butler:/app/data"
+    environment:
+      - CONFIG_PATH=/app/data/config.yaml
+      - TZ=Asia/Shanghai
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

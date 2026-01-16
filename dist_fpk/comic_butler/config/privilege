@@ -1,0 +1,8 @@
+{
+    "defaults":
+    {
+        "run-as": "package"
+    },
+    "username": "docker-comic_butler",
+    "groupname": "docker-comic_butler"
+}

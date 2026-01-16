@@ -1,0 +1,38 @@
+{
+    "docker-project":
+    {
+        "projects":
+        [
+            {
+                "name": "comic_butler",
+                "path": "docker"
+            }
+        ]
+    },
+    "data-share":
+    {
+        "shares":
+        [
+            {
+                "name": "comic_butler",
+                "permission":
+                {
+                    "rw":
+                    [
+                        "docker-comic_butler"
+                    ]
+                }
+            },
+            {
+                "name": "comic_butler/data",
+                "permission":
+                {
+                    "rw":
+                    [
+                        "docker-comic_butler"
+                    ]
+                }
+            }
+        ]
+    }
+}

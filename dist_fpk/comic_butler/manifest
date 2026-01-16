@@ -1,0 +1,10 @@
+appname               = comic_butler
+version               = 1.0.0
+display_name          = Comic Butler
+desc                  = AI Family Comic Butler - Auto capture and cartoonize.
+arch                  = x86_64
+source                = thirdparty
+maintainer            = User
+distributor           = User
+desktop_uidir         = ui
+desktop_applaunchname = comic_butler.Application

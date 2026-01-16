@@ -1,0 +1,13 @@
+{
+    ".url": {
+        "comic_butler.Application": {
+            "title": "Comic Butler",
+            "icon": "images/icon_{0}.png",
+            "type": "url",
+            "protocol": "http",
+            "port": "8501",
+            "url": "/",
+            "allUsers": false
+        }
+    }
+}
