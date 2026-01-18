@@ -1,10 +1,12 @@
 appname               = comic_butler
-version               = 1.0.0
-display_name          = Comic Butler
-desc                  = AI Family Comic Butler - Auto capture and cartoonize.
+version               = 1.0.1
+display_name          = AI 家庭漫画管家
+desc                  = <p>🎨 通过 RTSP 连接家庭监控摄像头，自动抓拍精彩瞬间，AI 打分筛选，生成漫画风格连环画，并推送到微信。</p><h4>✨ 功能特点</h4><ul><li>📹 <b>RTSP 抓拍</b>：连接监控摄像头，定时自动抓拍画面</li><li>👤 <b>人物检测</b>：AI 智能识别，只保留有人的画面</li><li>⭐ <b>审美打分</b>：AI 评估图片质量，维护每日 Top N 榜单</li><li>🎨 <b>漫画重绘</b>：将照片转换为漫画插画风格</li><li>🖼️ <b>连环画拼接</b>：按时间顺序拼接成漫画分镜</li><li>📤 <b>微信推送</b>：通过 PushPlus 推送到微信</li></ul>
 arch                  = x86_64
 source                = thirdparty
-maintainer            = User
-distributor           = User
+maintainer            = 岩风
+maintainer_url=https://github.com/yanfeng17/comic_butler
+distributor           = 岩风
+distributor_url=https://github.com/yanfeng17/comic_butler
 desktop_uidir         = ui
 desktop_applaunchname = comic_butler.Application

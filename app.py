@@ -72,6 +72,14 @@ st.markdown("""
         text-align: center;
         background: linear-gradient(145deg, #f5f5f5, #ffffff);
     }
+    
+    /* Hide Streamlit elements */
+    div[data-testid="stToolbar"] { visibility: hidden; height: 0%; position: fixed; }
+    div[data-testid="stDecoration"] { visibility: hidden; height: 0%; position: fixed; }
+    div[data-testid="stStatusWidget"] { visibility: hidden; height: 0%; position: fixed; }
+    #MainMenu { visibility: hidden; height: 0%; }
+    header { visibility: hidden; height: 0%; }
+    footer { visibility: hidden; height: 0%; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -667,7 +675,7 @@ def render_sidebar():
         )
     
     # 保存按钮
-    if st.sidebar.button("💾 保存设置", use_container_width=True):
+    if st.sidebar.button("💾 保存设置", width="stretch"):
         # 解析推送时间
         push_times = [t.strip() for t in push_times_str.split(',') if t.strip()]
         
@@ -746,7 +754,7 @@ def render_main():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        if st.button("📸 立即抓拍测试", use_container_width=True):
+        if st.button("📸 立即抓拍测试", width="stretch"):
             # 清理上一次未入选的预览图片
             if st.session_state.last_capture_result:
                 old_result = st.session_state.last_capture_result
@@ -790,7 +798,7 @@ def render_main():
                 st.rerun()
     
     with col2:
-        if st.button("🎨 漫画重绘", use_container_width=True):
+        if st.button("🎨 漫画重绘", width="stretch"):
             with st.spinner("正在重绘..."):
                 async def _redraw():
                     return await do_cartoon_redraw()
@@ -808,7 +816,7 @@ def render_main():
                 st.rerun()
     
     with col3:
-        if st.button("🖼️ 生成连环画", use_container_width=True):
+        if st.button("🖼️ 生成连环画", width="stretch"):
             with st.spinner("正在生成..."):
                 async def _collage():
                     return await do_create_collage()
@@ -823,7 +831,7 @@ def render_main():
                 st.rerun()
     
     with col4:
-        if st.button("📤 立即推送", use_container_width=True):
+        if st.button("📤 立即推送", width="stretch"):
             with st.spinner("正在处理..."):
                 async def _push():
                     return await do_full_pipeline()

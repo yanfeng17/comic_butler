@@ -12,7 +12,7 @@ quality_threshold: 0.5
 enable_face_detection: false
 auto_capture_enabled: false
 auto_push_enabled: true
-cartoon_prompt: 经典中国连环画风格，手绘插画质感，清晰的勾线，淡雅的水彩晕染，复古氛围，细腻的笔触，富有故事感，宁静祥和，保留图片中人物和背景的主要特征
+cartoon_prompt: 现代清新插画风格，矢量艺术，扁平化设计，明亮的色块，简约时尚，色彩鲜艳，充满活力，保留图片中人物和背景的主要特征
 scoring_prompt: '作为一名专业摄影评审，请对这张照片进行审美评分。
 
 

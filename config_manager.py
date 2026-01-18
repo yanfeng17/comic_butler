@@ -37,18 +37,7 @@ class ConfigManager:
         'enable_face_detection': False,
         'auto_capture_enabled': True,
         'auto_push_enabled': True,
-        'cartoon_prompt': """Transform this photo into a beautiful Studio Ghibli style illustration using the Nano Banana art style.
-
-Key characteristics:
-- Soft, warm color palette typical of Miyazaki films
-- Gentle watercolor-like textures
-- Dreamy, whimsical atmosphere
-- Preserve the original composition and people's features
-- Add subtle magical elements like soft lighting
-- Keep the peaceful, nostalgic feeling of Ghibli films
-- Use the Nano Banana aesthetic for character rendering
-
-Generate the transformed image directly.""",
+        'cartoon_prompt': "现代清新插画风格，矢量艺术，扁平化设计，明亮的色块，简约时尚，色彩鲜艳，充满活力，保留图片中人物和背景的主要特征",
         'scoring_prompt': """作为一名专业摄影评审，请对这张照片进行审美评分。
 
 评判标准：

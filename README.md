@@ -73,20 +73,16 @@ python main.py
 
 ### API 服务
 
-本项目使用 [SiliconFlow](https://cloud.siliconflow.cn/) 提供的 AI 模型：
+本项目使用 [SiliconFlow](https://cloud.siliconflow.cn/,注册会赠送14元额度) 提供的 AI 模型：
 
 - **人物检测**：本地 YOLOv8 (可选)
-- **审美打分**：`THUDM/GLM-4.1V-9B-Thinking`
-- **漫画重绘**：`Qwen/Qwen-Image-Edit-2509`
+- **审美打分**：`THUDM/GLM-4.1V-9B-Thinking`（免费模型）
+- **漫画重绘**：`Qwen/Qwen-Image-Edit-2509`（0.3元一张图片）
 
-> [!IMPORTANT]
-> SiliconFlow API 需要通过图片 URL 访问图片，因此必须配置 **ImgBB** 图床服务：
-> - **ImgBB**：免费图床服务，用于临时托管图片
-> - **获取方式**：访问 [https://api.imgbb.com/](https://api.imgbb.com/) 注册并获取 API Key
-> - **重要性**：
->   - ✅ **AI 审美打分**：必须配置，否则评分将变成随机数
->   - ✅ **漫画重绘**：必须配置，否则功能完全失效
->   - ⚠️ **微信推送**：可选，未配置时使用低质量 Base64 编码（图片会被高度压缩）
+
+SiliconFlow API 需要通过图片 URL 访问图片，因此必须配置 **ImgBB** 图床服务：
+- **ImgBB**：免费图床服务，用于临时托管图片
+- **获取方式**：访问 [https://api.imgbb.com/](https://api.imgbb.com/) 注册并获取 API Key
 
 ### 推送服务
 
