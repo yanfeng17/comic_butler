@@ -1,7 +1,7 @@
 {
     ".url": {
         "comic_butler.Application": {
-            "title": "Comic Butler",
+            "title": "AI 家庭漫画管家",
             "icon": "images/icon_{0}.png",
             "type": "url",
             "protocol": "http",
