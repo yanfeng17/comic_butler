@@ -11,12 +11,18 @@ AI 家庭漫画管家 - Streamlit 可视化后台
 
 import streamlit as st
 import asyncio
+import base64
+import hashlib
+import hmac
+import json
 import os
+import secrets
 import sys
 from datetime import datetime, date
 from pathlib import Path
 import threading
 import time
+from typing import List, Optional
 
 # 添加项目路径
 sys.path.insert(0, str(Path(__file__).parent))
@@ -44,33 +50,182 @@ st.set_page_config(
 # ========== 自定义样式 ==========
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700&display=swap');
+    :root {
+        --bg: #0b1220;
+        --surface: #111827;
+        --surface-alt: #1f2937;
+        --border: #253348;
+        --text: #f8fafc;
+        --muted: #94a3b8;
+        --accent: #22c55e;
+        --accent-strong: #16a34a;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --shadow: 0 12px 28px rgba(2, 6, 23, 0.65);
+    }
+    html, body, [class*="css"] {
+        font-family: 'Nunito', sans-serif;
+        color: var(--text);
+    }
+    .stApp {
+        background:
+            radial-gradient(900px 500px at 15% -10%, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0) 60%),
+            radial-gradient(800px 420px at 90% -10%, rgba(34, 197, 94, 0.12) 0%, rgba(34, 197, 94, 0) 60%),
+            var(--bg);
+    }
+    h1, h2, h3 {
+        font-family: 'Fredoka', sans-serif;
+        color: var(--text);
+        letter-spacing: 0.2px;
+    }
     .stButton>button {
         width: 100%;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: none;
+        transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
     }
-    .log-container {
-        background-color: #1e1e1e;
-        color: #d4d4d4;
-        padding: 10px;
-        border-radius: 5px;
+    .stButton>button:hover {
+        border-color: var(--accent);
+        box-shadow: 0 6px 18px rgba(34, 197, 94, 0.18);
+        transform: translateY(-1px);
+    }
+    button[data-testid="baseButton-primary"] {
+        background: var(--accent);
+        color: #fff;
+        border-color: var(--accent-strong);
+        box-shadow: 0 10px 24px rgba(34, 197, 94, 0.25);
+    }
+    button[data-testid="baseButton-primary"]:hover {
+        border-color: var(--accent-strong);
+        box-shadow: 0 12px 26px rgba(34, 197, 94, 0.32);
+    }
+    div[data-testid="stMetric"] {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 12px 16px;
+        box-shadow: var(--shadow);
+    }
+    .section-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 18px 20px;
+        box-shadow: var(--shadow);
+        margin-bottom: 18px;
+    }
+    .status-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px 16px;
+        box-shadow: var(--shadow);
+    }
+    .status-title {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        letter-spacing: 0.4px;
+    }
+    .status-value {
+        font-family: 'Fredoka', sans-serif;
+        font-size: 1.1rem;
+    }
+    .status-ok { color: var(--success); }
+    .status-warn { color: var(--warning); }
+    .status-bad { color: var(--danger); }
+    .image-card {
+        background: var(--surface-alt);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 12px;
+    }
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--muted);
+    }
+    .badge-success {
+        color: var(--success);
+        border-color: rgba(34, 197, 94, 0.35);
+        background: rgba(34, 197, 94, 0.15);
+    }
+    .badge-warning {
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.4);
+        background: rgba(245, 158, 11, 0.15);
+    }
+    .alert-card {
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+    }
+    .alert-title {
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    .alert-body {
+        color: var(--muted);
+        font-size: 0.95rem;
+    }
+    div[data-testid="stSidebar"] {
+        background: #0f172a;
+        border-right: 1px solid var(--border);
+        color: var(--text);
+    }
+    div[data-testid="stSidebar"] pre {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 8px 10px;
+        color: var(--text);
         font-family: 'Consolas', 'Monaco', monospace;
         font-size: 12px;
-        height: 300px;
-        overflow-y: auto;
+        line-height: 1.35;
+        margin-bottom: 6px;
     }
-    .status-connected {
-        color: #4caf50;
-        font-weight: bold;
+    .stCaption, .stMarkdown p, .stMarkdown span, .stMarkdown li {
+        color: var(--muted);
     }
-    .status-disconnected {
-        color: #f44336;
-        font-weight: bold;
+    .stMarkdown strong {
+        color: var(--text);
     }
-    .top-image-card {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 10px;
-        text-align: center;
-        background: linear-gradient(145deg, #f5f5f5, #ffffff);
+    label, .stTextInput label, .stTextArea label, .stSelectbox label,
+    .stCheckbox label, .stRadio label, .stSlider label {
+        color: var(--text);
+    }
+    .stTextInput input, .stTextArea textarea, .stNumberInput input {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+    .stSelectbox div[data-baseweb="select"] > div {
+        background: var(--surface);
+        color: var(--text);
+        border: 1px solid var(--border);
+    }
+    .stSelectbox svg, .stTextInput svg, .stNumberInput svg {
+        color: var(--muted);
+    }
+    .stTextInput input::placeholder, .stTextArea textarea::placeholder {
+        color: #64748b;
+    }
+    .stMarkdown a {
+        color: var(--accent);
     }
     
     /* Hide Streamlit elements */
@@ -101,6 +256,8 @@ class GlobalState:
 def get_global_state() -> GlobalState:
     return GlobalState()
 
+AUTH_FILE = Path(__file__).parent / "data" / "auth.json"
+
 # ========== Session State 初始化 (仅用于 UI 状态) ==========
 def init_session_state():
     """初始化 Session State"""
@@ -114,11 +271,17 @@ def init_session_state():
     if 'scheduler_started' not in st.session_state:
         st.session_state.scheduler_started = False
 
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+
+    if "auth_user" not in st.session_state:
+        st.session_state.auth_user = ""
+
 
 def add_log(message: str):
     """添加日志 (全局)"""
     timestamp = datetime.now().strftime("%H:%M:%S")
-    log_entry = f"[{timestamp}] {message}"
+    log_entry = f"[{timestamp}] {sanitize_log_message(message)}"
     
     # 更新全局日志
     state = get_global_state()
@@ -132,6 +295,215 @@ def add_log(message: str):
     print(f"[Log] {log_entry}")
 
 
+LOG_REPLACEMENTS = {
+    "✅": "[OK]",
+    "❌": "[ERR]",
+    "⚠️": "[WARN]",
+    "⏰": "[TIMER]",
+    "🚀": "[START]",
+    "🗑️": "[DEL]",
+    "📤": "[PUSH]",
+    "🎨": "[ART]",
+    "📸": "[CAP]",
+    "🤖": "[AI]",
+    "🔍": "[SCAN]",
+    "👤": "[FACE]",
+    "📊": "[STAT]",
+    "🏆": "[TOP]",
+    "⚙️": "[CFG]",
+}
+
+GRID_COLUMNS = 3
+
+
+def sanitize_log_message(message: str) -> str:
+    """将常见 emoji 标记替换为文本标签，提升可读性"""
+    sanitized = message
+    for emoji, text in LOG_REPLACEMENTS.items():
+        sanitized = sanitized.replace(emoji, text)
+    return sanitized
+
+
+def get_today_capture_count() -> int:
+    """统计今日抓拍数量"""
+    capture_dir = Path(__file__).parent / "data" / "captures"
+    if not capture_dir.exists():
+        return 0
+    date_prefix = date.today().strftime("%Y%m%d")
+    return sum(1 for _ in capture_dir.glob(f"capture_{date_prefix}_*.jpg"))
+
+
+def render_status_card(title: str, value: str, tone: str = "neutral") -> None:
+    """渲染状态卡片"""
+    tone_class = {
+        "ok": "status-ok",
+        "warn": "status-warn",
+        "bad": "status-bad",
+    }.get(tone, "")
+    st.markdown(
+        f"""
+        <div class="status-card">
+            <div class="status-title">{title}</div>
+            <div class="status-value {tone_class}">{value}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+def render_config_alert():
+    """渲染配置缺失提示"""
+    config = get_config_manager()
+    missing = []
+    if not config.get("rtsp_url"):
+        missing.append("RTSP 地址")
+    if not config.get("siliconflow_token"):
+        missing.append("SiliconFlow Token")
+    if not config.get("pushplus_token"):
+        missing.append("PushPlus Token")
+    if not config.get("imgbb_api_key"):
+        missing.append("ImgBB API Key")
+
+    if missing:
+        st.markdown(
+            f"""
+            <div class="alert-card">
+                <div class="alert-title">配置未完成</div>
+                <div class="alert-body">请在左侧补充：{'、'.join(missing)}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+def _hash_password(password: str, salt_bytes: bytes) -> str:
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt_bytes, 120000)
+    return base64.b64encode(digest).decode("ascii")
+
+
+def load_auth() -> Optional[dict]:
+    """加载鉴权配置"""
+    if not AUTH_FILE.exists():
+        return None
+    try:
+        with AUTH_FILE.open("r", encoding="utf-8") as file_handle:
+            data = json.load(file_handle)
+        if not isinstance(data, dict):
+            return None
+        if not data.get("username"):
+            return None
+        if data.get("password_hash") and data.get("salt"):
+            return data
+    except Exception:
+        return None
+    return None
+
+
+def save_auth(username: str, password: str) -> None:
+    """保存鉴权配置（哈希）"""
+    AUTH_FILE.parent.mkdir(parents=True, exist_ok=True)
+    salt = secrets.token_bytes(16)
+    data = {
+        "username": username,
+        "salt": base64.b64encode(salt).decode("ascii"),
+        "password_hash": _hash_password(password, salt),
+    }
+    with AUTH_FILE.open("w", encoding="utf-8") as file_handle:
+        json.dump(data, file_handle, ensure_ascii=False)
+
+
+def verify_credentials(auth_data: Optional[dict], username: str, password: str) -> bool:
+    """验证用户名和密码"""
+    if not auth_data or not username or not password:
+        return False
+    if username != auth_data.get("username"):
+        return False
+    try:
+        salt = base64.b64decode(auth_data.get("salt", ""))
+    except Exception:
+        return False
+    expected = auth_data.get("password_hash", "")
+    actual = _hash_password(password, salt)
+    return hmac.compare_digest(actual, expected)
+
+
+def render_auth_gate() -> bool:
+    """渲染鉴权入口，返回是否已通过鉴权"""
+    auth_data = load_auth()
+
+    if not auth_data:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("首次使用设置账号")
+        st.caption("请设置访问账号密码，后续访问需要登录。")
+        with st.form("setup_form"):
+            username = st.text_input("用户名", value="admin")
+            password = st.text_input("密码", type="password", placeholder="请输入密码")
+            confirm = st.text_input("确认密码", type="password", placeholder="请再次输入密码")
+            submitted = st.form_submit_button("完成设置", use_container_width=True)
+
+        if submitted:
+            if not username or not password:
+                st.error("用户名和密码不能为空")
+            elif password != confirm:
+                st.error("两次输入的密码不一致")
+            else:
+                save_auth(username.strip(), password)
+                st.session_state.authenticated = True
+                st.session_state.auth_user = username.strip()
+                st.success("设置完成，请进入主界面。")
+                st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
+        return False
+
+    if st.session_state.authenticated:
+        return True
+
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.subheader("登录")
+    st.caption("请输入账号密码以进入主界面。")
+    with st.form("login_form"):
+        username = st.text_input("用户名", value=auth_data.get("username", "admin"))
+        password = st.text_input("密码", type="password", placeholder="请输入密码")
+        submitted = st.form_submit_button("登录", use_container_width=True)
+
+    if submitted:
+        if verify_credentials(auth_data, username.strip(), password):
+            st.session_state.authenticated = True
+            st.session_state.auth_user = username.strip()
+            st.success("登录成功。")
+            st.rerun()
+        else:
+            st.error("账号或密码错误")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    return False
+
+
+def render_status_bar():
+    """渲染运行状态概览"""
+    state = get_global_state()
+    scheduler_status = get_global_scheduler().get_status()
+    rankings = state.ranking_manager.get_rankings()
+
+    rtsp_value = "已连接" if state.rtsp_connected else "未连接"
+    rtsp_tone = "ok" if state.rtsp_connected else "bad"
+    scheduler_value = "运行中" if scheduler_status.get("running") else "未启动"
+    scheduler_tone = "ok" if scheduler_status.get("running") else "warn"
+    capture_count = f"{get_today_capture_count()} 张"
+    selected_count = f"{len(rankings)} 张"
+
+    cols = st.columns(4)
+    with cols[0]:
+        render_status_card("RTSP 连接", rtsp_value, rtsp_tone)
+    with cols[1]:
+        render_status_card("调度器状态", scheduler_value, scheduler_tone)
+    with cols[2]:
+        render_status_card("今日抓拍", capture_count)
+    with cols[3]:
+        render_status_card("今日入选", selected_count)
+
+
 
 
 
@@ -139,6 +511,7 @@ def add_log(message: str):
 async def do_capture_and_score():
     """执行抓拍和打分 - 使用 Gemini API"""
     config = get_config_manager()
+    state = get_global_state()
     
     # 每次抓拍时重新创建 RTSP 连接，确保获取最新画面
     rtsp_url = config.get('rtsp_url')
@@ -147,8 +520,10 @@ async def do_capture_and_score():
     # 强制重新连接
     capture.release()
     if not capture.connect():
+        state.rtsp_connected = False
         add_log("❌ RTSP 连接失败")
         return None, 0.0
+    state.rtsp_connected = True
     
     # 抓拍
     add_log("正在抓拍...")
@@ -159,6 +534,7 @@ async def do_capture_and_score():
         add_log("❌ 抓拍失败：无法获取画面")
         return None, 0.0
     
+    state.last_capture_time = datetime.now()
     add_log(f"✅ 抓拍成功: {Path(image_path).name}")
     
     # 本地人脸检测 (如果启用)
@@ -475,13 +851,21 @@ def start_scheduler_if_needed():
 # ========== 侧边栏 ==========
 def render_sidebar():
     """渲染侧边栏设置"""
-    st.sidebar.title("⚙️ 设置")
+    st.sidebar.title("设置")
+
+    if st.session_state.get("authenticated"):
+        st.sidebar.caption(f"当前用户：{st.session_state.get('auth_user') or 'admin'}")
+        if st.sidebar.button("退出登录", use_container_width=True):
+            st.session_state.authenticated = False
+            st.session_state.auth_user = ""
+            st.rerun()
+        st.sidebar.markdown("---")
     
     config = get_config_manager()
     current_config = config.get_all()
     
     # RTSP 设置
-    st.sidebar.subheader("📹 摄像头设置")
+    st.sidebar.subheader("摄像头设置")
     rtsp_url = st.sidebar.text_input(
         "RTSP 地址",
         value=current_config.get('rtsp_url', ''),
@@ -489,14 +873,14 @@ def render_sidebar():
     )
     
     # API 设置
-    st.sidebar.subheader("🔑 API 配置")
+    st.sidebar.subheader("API 配置")
     siliconflow_token = st.sidebar.text_input(
         "SiliconFlow Token",
         value=current_config.get('siliconflow_token', ''),
         type="password",
         help="点击下方链接注册/获取"
     )
-    st.sidebar.markdown("[👉 获取 SiliconFlow Token](https://cloud.siliconflow.cn/i/nSTUhFZV)")
+    st.sidebar.markdown("[获取 SiliconFlow Token](https://cloud.siliconflow.cn/i/nSTUhFZV)")
     
     pushplus_token = st.sidebar.text_input(
         "PushPlus Token",
@@ -504,7 +888,7 @@ def render_sidebar():
         type="password",
         help="用于微信推送"
     )
-    st.sidebar.markdown("[👉 获取 PushPlus Token](http://www.pushplus.plus/)")
+    st.sidebar.markdown("[获取 PushPlus Token](http://www.pushplus.plus/)")
     
     imgbb_api_key = st.sidebar.text_input(
         "ImgBB API Key (图床)",
@@ -512,10 +896,10 @@ def render_sidebar():
         type="password",
         help="用于更清晰的图片推送"
     )
-    st.sidebar.markdown("[👉 获取 ImgBB API Key](https://api.imgbb.com/)")
+    st.sidebar.markdown("[获取 ImgBB API Key](https://api.imgbb.com/)")
 
     # Model Selection
-    st.sidebar.subheader("🤖 模型选择 (SiliconFlow)")
+    st.sidebar.subheader("模型选择 (SiliconFlow)")
     
     # Scoring Model
     scoring_models = ["THUDM/GLM-4.1V-9B-Thinking", "Qwen/Qwen3-VL-30B-A3B-Instruct", "自定义"]
@@ -563,7 +947,7 @@ def render_sidebar():
         final_cartoon_model = st.sidebar.text_input("输入重绘模型名称", value=current_cartoon)
     
     # 抓拍设置
-    st.sidebar.subheader("📷 抓拍设置")
+    st.sidebar.subheader("抓拍设置")
     capture_interval = st.sidebar.slider(
         "抓拍间隔（秒）",
         min_value=10,
@@ -584,7 +968,7 @@ def render_sidebar():
     )
     
     # 排名设置
-    st.sidebar.subheader("🏆 排名设置")
+    st.sidebar.subheader("排名设置")
     top_n = st.sidebar.slider(
         "Top N 数量",
         min_value=1,
@@ -598,7 +982,7 @@ def render_sidebar():
 
     
     # 推送设置
-    st.sidebar.subheader("📤 推送设置")
+    st.sidebar.subheader("推送设置")
     push_times_str = st.sidebar.text_input(
         "推送时间",
         value=", ".join(current_config.get('push_times', [])),
@@ -611,7 +995,7 @@ def render_sidebar():
     )
     
     # 高级提示词设置
-    with st.sidebar.expander("📝 高级提示词设置"):
+    with st.sidebar.expander("高级提示词设置"):
         scoring_prompt = st.text_area(
             "AI 评分标准提示词",
             value=current_config.get('scoring_prompt', ''),
@@ -675,7 +1059,7 @@ def render_sidebar():
         )
     
     # 保存按钮
-    if st.sidebar.button("💾 保存设置", width="stretch"):
+    if st.sidebar.button("保存设置", use_container_width=True):
         # 解析推送时间
         push_times = [t.strip() for t in push_times_str.split(',') if t.strip()]
         
@@ -727,34 +1111,56 @@ def render_sidebar():
 
     # 显示全局实时日志
     st.sidebar.markdown("---")
-    st.sidebar.subheader("📝 实时日志")
+    st.sidebar.subheader("实时日志")
     
     # 自动刷新开关
-    auto_refresh = st.sidebar.checkbox("🔄 开启实时监控 (自动刷新)", value=True, help="每 2 秒刷新一次界面以查看最新日志")
+    auto_refresh = st.sidebar.checkbox("开启实时监控 (自动刷新)", value=True, help="每 2 秒刷新一次界面以查看最新日志")
     st.session_state.auto_refresh = auto_refresh
+
+    log_filter = st.sidebar.selectbox(
+        "日志筛选",
+        ["全部", "仅错误", "仅警告", "仅成功"]
+    )
     
     log_container = st.sidebar.container()
     with log_container:
         state = get_global_state()
         # 显示最近的 15 条日志，倒序
-        recent_logs = state.logs[-15:][::-1]
-        for log in recent_logs:
-            st.text(log)
+        recent_logs = state.logs[-20:][::-1]
+        if log_filter != "全部":
+            if log_filter == "仅错误":
+                recent_logs = [log for log in recent_logs if "[ERR]" in log]
+            elif log_filter == "仅警告":
+                recent_logs = [log for log in recent_logs if "[WARN]" in log]
+            elif log_filter == "仅成功":
+                recent_logs = [log for log in recent_logs if "[OK]" in log]
+
+        if recent_logs:
+            for log in recent_logs:
+                st.text(log)
+        else:
+            st.caption("暂无匹配日志")
 
 
 # ========== 主界面 ==========
 def render_main():
     """渲染主界面"""
-    st.title("🎨 AI 家庭漫画管家")
+    st.title("AI 家庭漫画管家")
     st.caption("自动抓拍精彩瞬间，生成漫画风格连环画")
+
+    render_config_alert()
+    render_status_bar()
     
     # 调试控制区
-    st.subheader("🎮 控制台")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        if st.button("📸 立即抓拍测试", width="stretch"):
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.subheader("控制台")
+    st.caption("手动触发抓拍、重绘、拼图与推送")
+
+    row1 = st.columns(2)
+    row2 = st.columns(2)
+
+    with row1[0]:
+        if st.button("立即抓拍测试", use_container_width=True):
             # 清理上一次未入选的预览图片
             if st.session_state.last_capture_result:
                 old_result = st.session_state.last_capture_result
@@ -796,9 +1202,10 @@ def render_main():
                     st.warning("抓拍未成功或未检测到人物")
                 
                 st.rerun()
+        st.caption("即时抓拍并评分")
     
-    with col2:
-        if st.button("🎨 漫画重绘", width="stretch"):
+    with row1[1]:
+        if st.button("漫画重绘", use_container_width=True):
             with st.spinner("正在重绘..."):
                 async def _redraw():
                     return await do_cartoon_redraw()
@@ -814,9 +1221,10 @@ def render_main():
                     st.warning("没有可重绘的照片")
                 
                 st.rerun()
+        st.caption("对入选照片进行重绘")
     
-    with col3:
-        if st.button("🖼️ 生成连环画", width="stretch"):
+    with row2[0]:
+        if st.button("生成连环画", use_container_width=True):
             with st.spinner("正在生成..."):
                 async def _collage():
                     return await do_create_collage()
@@ -829,9 +1237,10 @@ def render_main():
                     st.warning("生成失败或没有图片")
                 
                 st.rerun()
+        st.caption("将漫画按时间拼接")
     
-    with col4:
-        if st.button("📤 立即推送", width="stretch"):
+    with row2[1]:
+        if st.button("立即推送", type="primary", use_container_width=True):
             with st.spinner("正在处理..."):
                 async def _push():
                     return await do_full_pipeline()
@@ -844,11 +1253,14 @@ def render_main():
                     st.warning("推送处理失败")
                 
                 st.rerun()
+        st.caption("推送到微信")
+
+    st.markdown("</div>", unsafe_allow_html=True)
     
     # 显示最新抓拍预览
     if st.session_state.last_capture_result:
-        st.divider()
-        st.subheader("📷 最新抓拍预览")
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("最新抓拍预览")
         
         result = st.session_state.last_capture_result
         is_in_ranking = False
@@ -864,7 +1276,9 @@ def render_main():
         
         with col_preview:
             if os.path.exists(result['path']):
-                st.image(result['path'], caption=f"抓拍时间: {result['time']}", width=400)
+                st.markdown('<div class="image-card">', unsafe_allow_html=True)
+                st.image(result['path'], caption=f"抓拍时间: {result['time']}", use_container_width=True)
+                st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.warning("预览图片已不存在")
         
@@ -874,11 +1288,11 @@ def render_main():
             
             # 显示入选状态
             if is_in_ranking:
-                st.success("✅ 已入选今日精选")
+                st.markdown('<span class="badge badge-success">已入选</span>', unsafe_allow_html=True)
             else:
-                st.warning("⚠️ 未入选")
+                st.markdown('<span class="badge badge-warning">未入选</span>', unsafe_allow_html=True)
             
-            if st.button("✖️ 关闭预览"):
+            if st.button("关闭预览", use_container_width=True):
                 # 如果图片未入选，删除它
                 if not is_in_ranking and os.path.exists(result['path']):
                     try:
@@ -888,71 +1302,80 @@ def render_main():
                         pass
                 st.session_state.last_capture_result = None
                 st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # 显示漫画重绘结果预览
     if st.session_state.last_cartoon_results:
-        st.divider()
-        st.subheader("🎨 漫画重绘结果")
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("漫画重绘结果")
         
         results = st.session_state.last_cartoon_results
-        cols = st.columns(len(results))
-        
-        for i, (col, (cartoon_path, timestamp)) in enumerate(zip(cols, results)):
-            with col:
-                st.markdown(f"**#{i+1}** 🕐 {timestamp}")
+        columns_per_row = GRID_COLUMNS
+        for i, (cartoon_path, timestamp) in enumerate(results):
+            if i % columns_per_row == 0:
+                cols = st.columns(columns_per_row)
+            with cols[i % columns_per_row]:
+                st.markdown(f"**#{i+1}** · {timestamp}")
                 if cartoon_path and os.path.exists(cartoon_path):
+                    st.markdown('<div class="image-card">', unsafe_allow_html=True)
                     st.image(cartoon_path, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                 else:
                     st.warning("图片不可用")
         
         # 关闭预览按钮
-        if st.button("✖️ 关闭重绘预览"):
+        if st.button("关闭重绘预览", use_container_width=True):
             st.session_state.last_cartoon_results = None
             st.rerun()
-    
-    st.divider()
+        st.markdown("</div>", unsafe_allow_html=True)
     
     # 今日 Top N 展示
-    st.subheader("🏆 今日精选")
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.subheader("今日精选")
     
     rankings = get_global_state().ranking_manager.get_rankings()
     
     if rankings:
-        cols = st.columns(len(rankings))
-        
-        for i, (col, item) in enumerate(zip(cols, rankings)):
-            with col:
-                st.markdown(f"**#{i+1}** 🕐 {item.timestamp}")
+        columns_per_row = GRID_COLUMNS
+        for i, item in enumerate(rankings):
+            if i % columns_per_row == 0:
+                cols = st.columns(columns_per_row)
+            with cols[i % columns_per_row]:
+                st.markdown(f"**#{i+1}** · {item.timestamp}")
                 
                 # 显示图片
                 display_path = item.cartoon_path if item.cartoon_path and os.path.exists(item.cartoon_path) else item.image_path
                 
                 if display_path and os.path.exists(display_path):
+                    st.markdown('<div class="image-card">', unsafe_allow_html=True)
                     st.image(display_path, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
                 else:
                     st.info("图片不可用")
                 
                 st.caption(f"评分: {item.score:.3f}")
                 
                 # 删除按钮
-                if st.button(f"🗑️ 删除", key=f"delete_{i}"):
+                if st.button("删除", key=f"delete_{i}", use_container_width=True):
                     get_global_state().ranking_manager.remove_image(item.image_path)
                     add_log(f"🗑️ 已删除精选照片 #{i+1}")
                     st.rerun()
     else:
-        st.info("📭 今日暂无精选照片，点击「立即抓拍测试」开始捕捉精彩瞬间！")
+        st.info("今日暂无精选照片，点击「立即抓拍测试」开始捕捉精彩瞬间。")
+    st.markdown("</div>", unsafe_allow_html=True)
     
     # 预览最新拼图
     collage_dir = Path(__file__).parent / "data" / "collages"
     today_collage = collage_dir / f"collage_{date.today().isoformat()}.jpg"
     
     if today_collage.exists():
-        st.divider()
-        st.subheader("🖼️ 今日连环画预览")
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("今日连环画预览")
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.image(str(today_collage), caption="今日家庭漫画连环画", use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
     
 
 
@@ -962,7 +1385,9 @@ def main():
     """主函数"""
     init_session_state()
     start_scheduler_if_needed()
-    
+    if not render_auth_gate():
+        return
+
     render_sidebar()
     render_main()
     

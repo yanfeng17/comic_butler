@@ -9,8 +9,8 @@ push_times:
 - '21:00'
 top_n: 3
 quality_threshold: 0.5
-enable_face_detection: false
-auto_capture_enabled: false
+enable_face_detection: true
+auto_capture_enabled: true
 auto_push_enabled: true
 cartoon_prompt: 现代清新插画风格，矢量艺术，扁平化设计，明亮的色块，简约时尚，色彩鲜艳，充满活力，保留图片中人物和背景的主要特征
 scoring_prompt: '作为一名专业摄影评审，请对这张照片进行审美评分。
