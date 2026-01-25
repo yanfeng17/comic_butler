@@ -1,23 +1,16 @@
 [
   {
-    "image_path": "C:\\AI Coding\\ha_xiaomi_home-main\\comic_butler\\data\\captures\\capture_20260124_192209.jpg",
-    "score": 0.65,
-    "timestamp": "19:22",
-    "capture_time": "2026-01-24T19:22:54.979201",
-    "cartoon_path": "C:\\AI Coding\\ha_xiaomi_home-main\\comic_butler\\data\\cartoons\\cartoon_capture_20260124_192209.jpg"
-  },
-  {
-    "image_path": "C:\\AI Coding\\ha_xiaomi_home-main\\comic_butler\\data\\captures\\capture_20260124_193959.jpg",
-    "score": 0.62,
-    "timestamp": "19:40",
-    "capture_time": "2026-01-24T19:40:23.631969",
-    "cartoon_path": ""
-  },
-  {
     "image_path": "C:\\AI Coding\\ha_xiaomi_home-main\\comic_butler\\data\\captures\\capture_20260124_191637.jpg",
     "score": 0.6,
     "timestamp": "19:17",
     "capture_time": "2026-01-24T19:17:25.607690",
     "cartoon_path": "C:\\AI Coding\\ha_xiaomi_home-main\\comic_butler\\data\\cartoons\\cartoon_capture_20260124_191637.jpg"
+  },
+  {
+    "image_path": "C:\\AI Coding\\ha_xiaomi_home-main\\comic_butler\\data\\captures\\capture_20260124_191632.jpg",
+    "score": 0.55,
+    "timestamp": "19:17",
+    "capture_time": "2026-01-24T19:17:12.371282",
+    "cartoon_path": ""
   }
 ]
