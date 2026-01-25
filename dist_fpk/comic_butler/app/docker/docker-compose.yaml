@@ -3,7 +3,7 @@ version: "3.8"
 services:
   comic-butler:
     # Use the pre-built image from Alibaba Cloud Registry
-    image: yanfeng17/comic_butler:1.0.2
+    image: crpi-e3vuk2tn55669vwt.cn-shenzhen.personal.cr.aliyuncs.com/yan_feng/comic_butler:1.0.2
     container_name: comic-butler
     restart: unless-stopped
     ports:
