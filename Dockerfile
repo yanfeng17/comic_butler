@@ -13,11 +13,18 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
-# Install CPU-only PyTorch first (remove -i aliyun to force using pytorch cpu index)
-RUN pip install --default-timeout=1000 torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-# Install other dependencies
-RUN pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
+# Install dependencies in a single layer to minimize size
+# Strategy:
+# 1. Install CPU-only PyTorch explicitly
+# 2. Install requirements (ignoring torch constraints if they conflict, but usually they won't)
+# 3. Aggressively remove any nvidia-* packages that pip might have pulled in (crucial for size)
+# 4. Replace opencv-python with headless version for server environments
+RUN pip install --no-cache-dir --default-timeout=1000 torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ --extra-index-url https://download.pytorch.org/whl/cpu \
+    && pip uninstall -y opencv-python \
+    && pip install --no-cache-dir opencv-python-headless -i https://mirrors.aliyun.com/pypi/simple/ \
+    && pip freeze | grep nvidia | xargs -r pip uninstall -y \
+    && pip uninstall -y triton
 
 # Copy application code
 COPY . .
