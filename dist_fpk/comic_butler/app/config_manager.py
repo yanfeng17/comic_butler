@@ -24,7 +24,7 @@ class ConfigManager:
     
     # 默认配置模板
     DEFAULT_CONFIG = {
-        'rtsp_url': 'rtsp://admin:password@192.168.1.100:554/stream1',
+        'rtsp_url': 'rtsp://username:password@ip_address:554/stream',
         'siliconflow_token': '',
         'scoring_model': 'THUDM/GLM-4.1V-9B-Thinking',
         'cartoon_model': 'Qwen/Qwen-Image-Edit-2509',
